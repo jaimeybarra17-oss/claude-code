@@ -12,7 +12,9 @@ class SupabaseService {
   static Future<SupabaseService> initialize() async {
     await Supabase.initialize(
       url: Env.supabaseUrl,
-      anonKey: Env.supabaseAnonKey,
+      // `publishableKey` is the current name for the client-side key
+      // (formerly `anonKey`). The value still comes from SUPABASE_ANON_KEY.
+      publishableKey: Env.supabaseAnonKey,
     );
     return SupabaseService(Supabase.instance.client);
   }

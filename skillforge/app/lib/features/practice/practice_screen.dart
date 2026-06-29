@@ -69,7 +69,7 @@ class _SimCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                backgroundColor: accent.withOpacity(0.15),
+                backgroundColor: accent.withValues(alpha: 0.15),
                 child: Icon(engine.icon, color: accent),
               ),
               const Spacer(),

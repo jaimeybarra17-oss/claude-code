@@ -58,7 +58,7 @@ class StreakFlame extends StatelessWidget {
       padding:
           const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.streakFlame.withOpacity(0.15),
+        color: AppColors.streakFlame.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Row(

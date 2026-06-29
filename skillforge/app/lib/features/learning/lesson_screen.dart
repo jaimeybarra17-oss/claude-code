@@ -46,7 +46,7 @@ class LessonScreen extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: (warning ? AppColors.warning : AppColors.info)
-                .withOpacity(0.12),
+                .withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(AppRadius.card),
           ),
           child: Text(md),

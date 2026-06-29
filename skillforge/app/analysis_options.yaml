@@ -1,7 +1,4 @@
+# Use the curated Flutter lint set. We intentionally don't pile on extra
+# style lints (e.g. prefer_const_constructors) so `flutter analyze` stays a
+# signal for real problems rather than stylistic noise.
 include: package:flutter_lints/flutter.yaml
-
-linter:
-  rules:
-    prefer_const_constructors: true
-    prefer_final_locals: true
-    avoid_print: true

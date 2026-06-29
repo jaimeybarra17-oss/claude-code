@@ -15,11 +15,7 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _controller = PageController();
   int _step = 0;
-
-  // Collected answers (would be submitted to Supabase on completion).
-  final Map<String, dynamic> _answers = {};
 
   static const _steps = <_Step>[
     _Step('How old are you?', 'We tailor pacing and content to your stage.'),
@@ -36,10 +32,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _next() {
     if (_step < _steps.length - 1) {
       setState(() => _step++);
-      _controller.nextPage(
-          duration: const Duration(milliseconds: 280), curve: Curves.easeOut);
     } else {
-      // TODO: persist _answers to onboarding_responses, then generate roadmap.
+      // TODO: persist the collected answers to onboarding_responses, then
+      // call the generate-roadmap Edge Function before navigating home.
       context.go('/home');
     }
   }
