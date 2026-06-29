@@ -1,0 +1,66 @@
+name: SkillForge CI
+
+# Scoped to the SkillForge project so it never runs for unrelated changes in
+# this repository.
+on:
+  push:
+    paths:
+      - "skillforge/**"
+      - ".github/workflows/skillforge-ci.yml"
+  pull_request:
+    paths:
+      - "skillforge/**"
+      - ".github/workflows/skillforge-ci.yml"
+
+jobs:
+  backend:
+    name: Database (migrations + seed + tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: skillforge_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGPASSWORD: postgres
+      PSQL: psql -h localhost -U postgres -d skillforge_test -v ON_ERROR_STOP=1
+    defaults:
+      run:
+        working-directory: skillforge
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply Supabase test shim
+        run: $PSQL -f supabase/tests/00_supabase_stub.sql
+
+      - name: Run migrations
+        run: for f in supabase/migrations/*.sql; do echo "-> $f"; $PSQL -f "$f"; done
+
+      - name: Load seed
+        run: cd supabase && $PSQL -f seed.sql
+
+      - name: Gamification regression test
+        run: $PSQL -f supabase/tests/gamification_test.sql
+
+  flutter:
+    name: Flutter (analyze + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skillforge/app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: cp .env.example .env
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test

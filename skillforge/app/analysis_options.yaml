@@ -1,0 +1,13 @@
+# Curated Flutter lint set, kept as a signal for real problems.
+#
+# We disable the two purely-stylistic "const" perf lints. They add no
+# correctness value here, fire inconsistently (a widget becomes const-able only
+# when every argument happens to be const), and chasing them tends to trade one
+# info for an `unnecessary_const` info elsewhere. `flutter analyze` treats infos
+# as failures, so silencing these keeps analyze meaningful instead of noisy.
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    prefer_const_constructors: false
+    prefer_const_literals_to_create_immutables: false
