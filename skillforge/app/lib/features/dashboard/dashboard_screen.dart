@@ -159,18 +159,6 @@ class DashboardScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: AppColors.surface,
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.school_outlined), label: 'Learn'),
-          NavigationDestination(icon: Icon(Icons.bolt_outlined), label: 'Practice'),
-          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Coach'),
-          NavigationDestination(icon: Icon(Icons.work_outline), label: 'Jobs'),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
-        selectedIndex: 0,
-        onDestinationSelected: (_) {},
-      ),
     );
   }
 }

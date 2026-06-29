@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/shell/home_shell.dart';
 
 /// App routing. In a full build a redirect would gate on auth + onboarding
 /// completion; the structure is in place here.
@@ -16,7 +16,7 @@ class AppRouter {
           ),
           GoRoute(
             path: '/home',
-            builder: (_, __) => const DashboardScreen(),
+            builder: (_, __) => const HomeShell(),
           ),
         ],
         errorBuilder: (_, state) => Scaffold(

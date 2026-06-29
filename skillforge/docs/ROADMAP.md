@@ -15,41 +15,54 @@ piece here is real and coherent, and the hard architectural decisions are made.
 - Security & trust model (`SECURITY.md`)
 
 **Backend (Supabase / Postgres)**
-- Complete schema across 9 migrations: identity, catalog, learning, gamification,
-  simulations, AI, certifications, jobs, community, billing, admin audit
+- Complete schema across 10 migrations: identity, catalog, learning, gamification,
+  simulations, AI, certifications, jobs, community, billing, admin audit, and
+  scheduled-maintenance jobs
 - Row-Level Security on **every** table
 - Server-authoritative gamification engine: `award_xp`, `touch_streak`,
   `recompute_career_progress`, `check_badges`, level curve, leaderboard bumps
+- Scheduled maintenance (0010): leaderboard rank assignment, learning-gap
+  resolution/decay, monthly partition rollover
 - Partitioned hot-path tables (xp_ledger, ai_messages, ai_usage)
 - Auto-provisioning of profiles on signup
 
 **Content**
 - All 10 launch careers seeded
-- Full 10-level Electrician curriculum: modules, sample lessons, 4 signature
-  simulations, a graded quiz with answer key, and career + universal badges
+- **Every career broken into its 10 levels**, each with its signature
+  "learn by doing" simulations, an intro lesson, a Level-1 graded quiz, and a
+  starter badge — data-driven, mirroring the Electrician template
+- Full Electrician vertical slice: modules, multiple lessons, 4 simulations, a
+  graded quiz with answer key, and career + universal badges
 
-**AI**
-- `ai-coach` and `ai-teacher` Edge Functions: JWT auth, per-plan rate limiting,
-  context assembly, OpenAI streaming, usage metering, learning-gap capture
+**AI / Edge Functions** (8 functions)
+- `ai-coach`, `ai-teacher`: JWT auth, per-plan rate limiting, context assembly,
+  OpenAI streaming, usage metering, and the adaptive learning-gap loop
+- `grade-quiz`: server-authoritative grading vs. RLS-hidden answer keys + XP award
+- `generate-roadmap`: AI-paced plan with deterministic fallback; sets enrollment
+- `issue-certificate`: Career Readiness Score blend + certificate issuance
+- `resume-feedback`: scored, sectioned AI resume review
+- `mock-interview`: streamed AI interview with a finalize/scoring path
+- `stripe-webhook`: signature-verified, idempotent entitlement sync
 
 **Client (Flutter)**
 - App scaffold: theme system from design tokens, routing, config, Supabase
-  bootstrap, core data models, and representative dashboard/onboarding feature code
+  bootstrap, core data models, unit test pinning the level curve to SQL
+- Five-tab shell (Learn · Practice · Coach · Jobs · Profile) with full screens:
+  dashboard, onboarding, AI coach chat, lesson player, practice grid, jobs hub,
+  and profile
 
 ## 🔜 Next (sequenced)
 
-1. **Curriculum depth** — flesh out lessons for all 10 Electrician levels, then
-   replicate the template across the other 9 careers (content task, no schema work).
+1. **Curriculum depth** — author the remaining lessons for every level across all
+   careers (pure content; the modules/sims/quizzes/badges already exist).
 2. **Simulation engines** — implement the Flutter renderers: wiring board, breaker
    panel, multimeter, candlestick chart-replay, sales dialogue trees.
-3. **Remaining Edge Functions** — `grade-quiz`, `stripe-webhook`, `generate-roadmap`,
-   `issue-certificate`, `resume-feedback`, `mock-interview`.
-4. **Billing** — Stripe checkout + customer portal + webhook entitlement sync.
-5. **Notifications** — Firebase Cloud Messaging for streak reminders & challenges.
-6. **Community** — friends, study groups, clubs, discussion UI on the existing schema.
-7. **Admin panel** — web console over the admin-scoped RLS policies + audit log.
-8. **Leaderboard rollup job** — scheduled rank assignment + period rollover.
-9. **Offline mode** — local cache of lessons for the premium offline feature.
+3. **Billing UI** — Stripe checkout + customer portal in-app (webhook sync done).
+4. **Notifications** — Firebase Cloud Messaging for streak reminders & challenges.
+5. **Community** — friends, study groups, clubs, discussion UI on the existing schema.
+6. **Admin panel** — web console over the admin-scoped RLS policies + audit log.
+7. **Certificate render worker** — PDF generation + Storage upload for `pdf_url`.
+8. **Offline mode** — local cache of lessons for the premium offline feature.
 
 ## ⚙️ Engineering hardening (ongoing)
 
