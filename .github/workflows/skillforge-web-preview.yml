@@ -63,6 +63,11 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    # Best-effort: until Pages is enabled (Settings -> Pages -> Source:
+    # GitHub Actions) this step fails; don't let that red the whole run. The
+    # build job + artifact still succeed, and deploys start working once Pages
+    # is on.
+    continue-on-error: true
     permissions:
       pages: write
       id-token: write
