@@ -1,0 +1,18 @@
+# Secrets
+**/.env
+supabase/functions/.env
+
+# Flutter / Dart
+app/.dart_tool/
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/pubspec.lock
+*.iml
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# OS / editor
+.DS_Store
