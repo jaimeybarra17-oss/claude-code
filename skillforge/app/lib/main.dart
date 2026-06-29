@@ -13,13 +13,24 @@ final supabaseProvider = Provider<SupabaseService>(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
-  final supabase = await SupabaseService.initialize();
+
+  // Initialize Supabase if configured. If it fails (e.g. the web preview build
+  // ships placeholder env), still render the UI with demo data rather than
+  // white-screening — the showcase screens don't require a live client.
+  SupabaseService? supabase;
+  try {
+    await dotenv.load(fileName: '.env');
+    supabase = await SupabaseService.initialize();
+  } catch (e) {
+    debugPrint('SkillForge: running without a live backend ($e)');
+  }
 
   runApp(
     ProviderScope(
-      overrides: [supabaseProvider.overrideWithValue(supabase)],
-      child: SkillForgeApp(isSignedIn: supabase.isSignedIn),
+      overrides: [
+        if (supabase != null) supabaseProvider.overrideWithValue(supabase),
+      ],
+      child: SkillForgeApp(isSignedIn: supabase?.isSignedIn ?? false),
     ),
   );
 }
