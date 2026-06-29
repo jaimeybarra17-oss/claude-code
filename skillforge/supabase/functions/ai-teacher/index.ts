@@ -36,13 +36,14 @@ Deno.serve(async (req) => {
     // Load the lesson + its career so the teacher has the material in context.
     const { data: lesson } = await ctx.admin
       .from("lessons")
-      .select("title, body, modules:module_id(title, careers:career_id(name, slug))")
+      .select("title, body, modules:module_id(title, careers:career_id(id, name, slug))")
       .eq("id", lessonId).single();
 
     // deno-lint-ignore no-explicit-any
     const mod = (lesson as any)?.modules;
     const careerName = mod?.careers?.name ?? "this career";
     const careerSlug = mod?.careers?.slug ?? null;
+    const careerId = mod?.careers?.id ?? null;
 
     const lessonCard = [
       `Career: ${careerName}. Module: ${mod?.title}. Lesson: ${lesson?.title}.`,
@@ -93,7 +94,7 @@ Deno.serve(async (req) => {
         const topic = gapMatch[1].trim().toLowerCase().replace(/\s+/g, "_");
         await ctx.admin.from("learning_gaps").upsert({
           user_id: ctx.userId, topic,
-          career_id: null, // resolved client-side or via a trigger by slug
+          career_id: careerId, // lets the exam-pass trigger reinforce this gap
           detail: `Detected in lesson "${lesson?.title}"`,
           status: "open",
         }, { onConflict: "user_id,topic", ignoreDuplicates: false });

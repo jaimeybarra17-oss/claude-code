@@ -22,27 +22,33 @@ Deno.serve(async (req) => {
       .eq("user_id", ctx.userId).eq("career_id", careerId).maybeSingle();
     const progress = Number(enrollment?.progress_pct ?? 0);
 
-    // Average exam score (passed exams only) for this career's quizzes.
+    // Average exam score (passed exams) for this career's quizzes. We embed the
+    // related rows and filter in JS to avoid fragile embedded-column filters.
     const { data: examAttempts } = await ctx.admin
       .from("quiz_attempts")
-      .select("score, quizzes!inner(is_exam, module_id, modules!inner(career_id))")
-      .eq("user_id", ctx.userId)
-      // deno-lint-ignore no-explicit-any
-      .eq("quizzes.is_exam" as any, true);
+      .select("score, passed, quizzes(is_exam, modules(career_id))")
+      .eq("user_id", ctx.userId);
     const examScores = (examAttempts ?? [])
       // deno-lint-ignore no-explicit-any
-      .filter((a: any) => a.quizzes?.modules?.career_id === careerId)
-      .map((a) => Number(a.score));
+      .filter((a: any) =>
+        a.passed && a.quizzes?.is_exam &&
+        a.quizzes?.modules?.career_id === careerId)
+      // deno-lint-ignore no-explicit-any
+      .map((a: any) => Number(a.score));
     const avgExam = avg(examScores);
 
     // Average simulation score for this career.
     const { data: simAttempts } = await ctx.admin
       .from("simulation_attempts")
-      .select("score, simulations!inner(career_id)")
-      .eq("user_id", ctx.userId)
-      // deno-lint-ignore no-explicit-any
-      .eq("simulations.career_id" as any, careerId);
-    const avgSim = avg((simAttempts ?? []).map((a) => Number(a.score ?? 0)));
+      .select("score, simulations(career_id)")
+      .eq("user_id", ctx.userId);
+    const avgSim = avg(
+      (simAttempts ?? [])
+        // deno-lint-ignore no-explicit-any
+        .filter((a: any) => a.simulations?.career_id === careerId)
+        // deno-lint-ignore no-explicit-any
+        .map((a: any) => Number(a.score ?? 0)),
+    );
 
     // Gap health: fraction of open gaps for the career (lower is better).
     const { count: openGaps } = await ctx.admin

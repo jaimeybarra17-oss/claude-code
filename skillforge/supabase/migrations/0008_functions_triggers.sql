@@ -190,8 +190,32 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Trigger: when a lesson flips to 'completed', run the full reward pipeline.
+-- Lesson-completion reward pipeline.
+--
+-- Split across two triggers on purpose:
+--   * BEFORE sets completed_at (mutating NEW is only allowed in BEFORE).
+--   * AFTER runs the reward pipeline. It MUST be AFTER so that the completed
+--     row is already persisted when recompute_career_progress() and
+--     check_badges() re-read lesson_progress — otherwise progress and badge
+--     counts lag by one completion.
+-- Both fire on INSERT OR UPDATE so a row written directly as 'completed'
+-- (not just transitioned) is still rewarded exactly once.
 -- ---------------------------------------------------------------------------
+create or replace function set_lesson_completed_at()
+returns trigger language plpgsql as $$
+begin
+  if new.status = 'completed'
+     and (tg_op = 'INSERT' or coalesce(old.status::text, '') <> 'completed')
+     and new.completed_at is null then
+    new.completed_at := now();
+  end if;
+  return new;
+end $$;
+
+create trigger trg_lesson_completed_at
+  before insert or update on lesson_progress
+  for each row execute function set_lesson_completed_at();
+
 create or replace function on_lesson_completed()
 returns trigger language plpgsql security definer
 set search_path = public as $$
@@ -199,21 +223,21 @@ declare
   v_lesson lessons%rowtype;
   v_career uuid;
 begin
-  if new.status = 'completed' and coalesce(old.status,'') <> 'completed' then
+  if new.status = 'completed'
+     and (tg_op = 'INSERT' or coalesce(old.status::text, '') <> 'completed') then
     select * into v_lesson from lessons where id = new.lesson_id;
     select m.career_id into v_career from modules m where m.id = v_lesson.module_id;
 
-    new.completed_at := now();
     perform award_xp(new.user_id, v_lesson.xp_reward, 'lesson_complete', v_lesson.id);
     perform touch_streak(new.user_id);
     perform recompute_career_progress(new.user_id, v_career);
     perform check_badges(new.user_id);
   end if;
-  return new;
+  return null;  -- AFTER trigger: return value is ignored
 end $$;
 
 create trigger trg_lesson_completed
-  before update on lesson_progress
+  after insert or update on lesson_progress
   for each row execute function on_lesson_completed();
 
 -- ---------------------------------------------------------------------------

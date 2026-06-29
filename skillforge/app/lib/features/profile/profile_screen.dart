@@ -32,7 +32,7 @@ class ProfileScreen extends StatelessWidget {
                 radius: 32,
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 child: Text(
-                  (p.displayName ?? '?').characters.first.toUpperCase(),
+                  _initial(p.displayName),
                   style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -97,6 +97,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 }
+
+/// First letter of the display name for the avatar, dependency-free and safe
+/// against null/empty names.
+String _initial(String? name) =>
+    (name != null && name.isNotEmpty) ? name[0].toUpperCase() : 'L';
 
 class _Badge extends StatelessWidget {
   const _Badge(this.icon, this.label);
